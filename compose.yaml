@@ -1,0 +1,72 @@
+name: opensearch-ccs-reproduction
+
+x-opensearch-service: &opensearch-service
+  ulimits:
+    memlock:
+      soft: -1
+      hard: -1
+    nofile:
+      soft: 65536
+      hard: 65536
+  environment: &opensearch-environment
+    discovery.type: single-node
+    bootstrap.memory_lock: "true"
+    OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
+    plugins.security.ssl.http.enabled: "false"
+    plugins.security.ssl.transport.pemcert_filepath: esnode.pem
+    plugins.security.ssl.transport.pemkey_filepath: esnode-key.pem
+    plugins.security.ssl.transport.pemtrustedcas_filepath: root-ca.pem
+    plugins.security.allow_unsafe_democertificates: "true"
+services:
+  os2-source:
+    <<: *opensearch-service
+    image: opensearchproject/opensearch:2.19.6
+    container_name: os2-source
+    hostname: os2-source
+    environment:
+      <<: *opensearch-environment
+      cluster.name: os2-source-cluster
+      node.name: os2-source
+      discovery.seed_hosts: os2-source
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: "Admin2Pass123!"
+    ports:
+      - "29200:9200"
+    volumes:
+      - os2-source-data:/usr/share/opensearch/data
+
+  os3-source:
+    <<: *opensearch-service
+    image: opensearchproject/opensearch:3.7.0
+    container_name: os3-source
+    hostname: os3-source
+    environment:
+      <<: *opensearch-environment
+      cluster.name: os3-source-cluster
+      node.name: os3-source
+      discovery.seed_hosts: os3-source
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: "N7!qL2#vR9@x"
+    ports:
+      - "39200:9200"
+    volumes:
+      - os3-source-data:/usr/share/opensearch/data
+
+  os2-destination:
+    <<: *opensearch-service
+    image: opensearchproject/opensearch:2.19.6
+    container_name: os2-destination
+    hostname: os2-destination
+    environment:
+      <<: *opensearch-environment
+      cluster.name: os2-destination-cluster
+      node.name: os2-destination
+      discovery.seed_hosts: os2-destination
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: "Q4@zM8!pT6#k"
+    ports:
+      - "49200:9200"
+    volumes:
+      - os2-destination-data:/usr/share/opensearch/data
+
+volumes:
+  os2-source-data:
+  os3-source-data:
+  os2-destination-data:
